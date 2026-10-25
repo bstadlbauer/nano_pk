@@ -196,7 +196,12 @@ class HargassnerBridge(Entity):
             try:
                 if self._writer:
                     self._writer.close()
-                    await self._writer.wait_closed()
+                    try:
+                        # re-raises the error the old connection died with, on every call
+                        await self._writer.wait_closed()
+                    except Exception:
+                        pass
+                    self._writer = None
                 self._reader, self._writer = await asyncio.wait_for(asyncio.open_connection(self._hostIP, 23), timeout=BRIDGE_TIMEOUT)
                 self._connectionOK = True
             except Exception:
